@@ -46,7 +46,9 @@ const InventoryOverview = () => {
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">{lowStockPercentage}%</span>
               <div className="w-20">
-                <Progress value={lowStockPercentage} className="h-2" 
+                <Progress 
+                  value={lowStockPercentage} 
+                  className="h-2" 
                   indicatorClassName={
                     lowStockPercentage > 50 
                       ? "bg-medical-red" 
