@@ -67,19 +67,21 @@ const UploadCSV = () => {
       
       if (deleteError) throw deleteError;
 
-      // Prepare data for insertion
+      // Prepare data for insertion with proper type conversion
       const inventoryData = items.map(item => {
-        // Creating a basic object with the required user_id
-        const baseData: Record<string, any> = { user_id: user.id };
-        
-        // Add all CSV columns to the object
-        Object.keys(item).forEach(key => {
-          // Convert key to snake_case for database
-          const dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-          baseData[dbKey] = item[key];
-        });
-        
-        return baseData;
+        // Create an object that matches the required Supabase table structure
+        return {
+          user_id: user.id,
+          // Ensure all required fields exist with proper types
+          name: String(item.name || item.Name || "Unnamed Item"),
+          category: String(item.category || item.Category || "Uncategorized"),
+          current_stock: Number(item.currentStock || item.current_stock || item["Current Stock"] || 0),
+          minimum_stock: Number(item.minimumStock || item.minimum_stock || item["Minimum Stock"] || 0),
+          expiry_date: item.expiryDate || item.expiry_date || item["Expiry Date"] || null,
+          unit_price: Number(item.unitPrice || item.unit_price || item["Unit Price"] || 0),
+          supplier: item.supplier || item.Supplier || null,
+          location: item.location || item.Location || null
+        };
       });
 
       // Insert data
