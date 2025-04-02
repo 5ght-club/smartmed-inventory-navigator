@@ -1,155 +1,67 @@
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { User, Bell, Lock } from "lucide-react";
+import ProfileSettings from "@/components/ProfileSettings";
 
 const Settings = () => {
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-3">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="data">Data Management</TabsTrigger>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your account settings and preferences.
+        </p>
+      </div>
+      
+      <Tabs defaultValue="profile" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="profile" className="flex items-center">
+            <User className="h-4 w-4 mr-2" />
+            <span>Profile</span>
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center">
+            <Bell className="h-4 w-4 mr-2" />
+            <span>Notifications</span>
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center">
+            <Lock className="h-4 w-4 mr-2" />
+            <span>Security</span>
+          </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="general" className="space-y-6 mt-6">
+        <TabsContent value="profile" className="space-y-4">
+          <ProfileSettings />
+        </TabsContent>
+        
+        <TabsContent value="notifications">
           <Card>
             <CardHeader>
-              <CardTitle>System Settings</CardTitle>
+              <CardTitle>Notifications</CardTitle>
               <CardDescription>
-                Configure your inventory management system
+                Configure how you receive notifications and alerts.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="facility-name">Facility Name</Label>
-                <Input id="facility-name" placeholder="Enter facility name" defaultValue="Main Hospital Pharmacy" />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="admin-email">Administrator Email</Label>
-                <Input id="admin-email" type="email" placeholder="admin@example.com" defaultValue="admin@example.com" />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="low-stock-threshold">Low Stock Threshold (% of minimum)</Label>
-                <Input id="low-stock-threshold" type="number" defaultValue="100" />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Items will be marked as low stock when they reach this percentage of their minimum stock level
-                </p>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Enable dark mode for the interface
-                  </p>
-                </div>
-                <Switch id="dark-mode" />
-              </div>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Notification settings will be implemented in a future update.
+              </p>
             </CardContent>
-            <CardFooter>
-              <Button>Save Changes</Button>
-            </CardFooter>
           </Card>
         </TabsContent>
         
-        <TabsContent value="notifications" className="space-y-6 mt-6">
+        <TabsContent value="security">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
+              <CardTitle>Security Settings</CardTitle>
               <CardDescription>
-                Configure alerts and notifications
+                Manage your security preferences and account access.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="email-notifications">Email Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive email alerts for critical inventory events
-                  </p>
-                </div>
-                <Switch id="email-notifications" defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="low-stock-alerts">Low Stock Alerts</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Notify when items fall below minimum stock level
-                  </p>
-                </div>
-                <Switch id="low-stock-alerts" defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="expiry-alerts">Expiry Alerts</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Notify when items are approaching expiry date
-                  </p>
-                </div>
-                <Switch id="expiry-alerts" defaultChecked />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="expiry-period">Expiry Alert Period (days)</Label>
-                <Input id="expiry-period" type="number" defaultValue="90" />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Get alerts when items are within this many days of expiry
-                </p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>Save Preferences</Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="data" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Data Management</CardTitle>
-              <CardDescription>
-                Manage your inventory data
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label>CSV Import/Export</Label>
-                <p className="text-sm text-muted-foreground">
-                  Import data from CSV files or export your current inventory
-                </p>
-                <div className="flex space-x-2 mt-2">
-                  <Button variant="outline">Import Data</Button>
-                  <Button variant="outline">Export Data</Button>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Backup & Restore</Label>
-                <p className="text-sm text-muted-foreground">
-                  Create backups of your inventory data or restore from previous backups
-                </p>
-                <div className="flex space-x-2 mt-2">
-                  <Button variant="outline">Create Backup</Button>
-                  <Button variant="outline">Restore Data</Button>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label className="text-medical-red">Danger Zone</Label>
-                <p className="text-sm text-muted-foreground">
-                  Permanently delete all inventory data (this cannot be undone)
-                </p>
-                <Button variant="destructive" className="mt-2">Reset System</Button>
-              </div>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Security settings will be implemented in a future update.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

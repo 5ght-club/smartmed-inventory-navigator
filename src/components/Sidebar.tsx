@@ -8,16 +8,36 @@ import {
   Menu,
   X,
   MessageSquare,
-  LogOut
+  LogOut,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { signOut } = useAuth();
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
+  const { signOut, user } = useAuth();
+
+  useEffect(() => {
+    const handleResize = () => {
+      const smallScreen = window.innerWidth < 768;
+      setIsSmallScreen(smallScreen);
+      
+      // Auto-open sidebar on large screens
+      if (!smallScreen && !isOpen) {
+        setIsOpen(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Initial check
+    
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isOpen]);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -38,38 +58,62 @@ const Sidebar = () => {
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="icon"
-        className="md:hidden fixed top-4 left-4 z-50"
-        onClick={toggleSidebar}
-      >
-        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </Button>
+      {/* Mobile toggle button */}
+      {isSmallScreen && (
+        <Button
+          variant="outline"
+          size="icon"
+          className="md:hidden fixed top-4 left-4 z-50"
+          onClick={toggleSidebar}
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+      )}
 
+      {/* Desktop toggle button */}
+      {!isSmallScreen && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hidden md:flex fixed top-4 left-4 z-50"
+          onClick={toggleSidebar}
+        >
+          {isOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+        </Button>
+      )}
+
+      {/* Sidebar */}
       <aside 
         className={cn(
-          "bg-sidebar fixed top-0 left-0 h-full w-64 flex-shrink-0 flex flex-col border-r border-sidebar-border z-40 transition-transform duration-200 ease-in-out",
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          "bg-sidebar fixed top-0 left-0 h-full flex-shrink-0 flex flex-col border-r border-sidebar-border z-40 transition-all duration-200 ease-in-out",
+          isOpen ? "w-64" : "w-0 md:w-16",
+          isSmallScreen && !isOpen && "hidden"
         )}
       >
         <div className="p-6">
-          <h1 className="text-sidebar-foreground text-xl font-bold">SmartMed</h1>
-          <p className="text-sidebar-foreground/70 text-sm">Inventory Manager</p>
+          <h1 className={cn("text-sidebar-foreground text-xl font-bold transition-opacity", 
+            !isOpen && !isSmallScreen ? "opacity-0" : "opacity-100"
+          )}>SmartMed</h1>
+          <p className={cn("text-sidebar-foreground/70 text-sm transition-opacity", 
+            !isOpen && !isSmallScreen ? "opacity-0" : "opacity-100"
+          )}>Inventory Manager</p>
         </div>
         <nav className="flex-1 px-4 space-y-1">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              onClick={() => setIsOpen(false)}
+              onClick={() => isSmallScreen && setIsOpen(false)}
               className={({ isActive }) => cn(
                 "flex items-center px-4 py-3 rounded-md text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors",
-                isActive && "bg-sidebar-accent text-sidebar-foreground font-medium"
+                isActive && "bg-sidebar-accent text-sidebar-foreground font-medium",
+                !isOpen && !isSmallScreen && "justify-center px-2"
               )}
             >
               {item.icon}
-              <span className="ml-3">{item.title}</span>
+              <span className={cn("ml-3 transition-opacity", 
+                !isOpen && !isSmallScreen ? "opacity-0 w-0 hidden" : "opacity-100"
+              )}>{item.title}</span>
             </NavLink>
           ))}
         </nav>
@@ -77,17 +121,27 @@ const Sidebar = () => {
           <div className="flex flex-col space-y-2">
             <Button 
               variant="ghost" 
-              className="flex items-center justify-start text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              className={cn(
+                "flex items-center text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                !isOpen && !isSmallScreen ? "justify-center px-2" : "justify-start"
+              )}
               onClick={handleSignOut}
             >
               <LogOut className="h-5 w-5 mr-3" />
-              Sign Out
+              <span className={cn("transition-opacity", 
+                !isOpen && !isSmallScreen ? "opacity-0 w-0 hidden" : "opacity-100"
+              )}>Sign Out</span>
             </Button>
-            <div className="flex items-center space-x-3 px-4 py-3">
+            <div className={cn(
+              "flex items-center space-x-3 px-4 py-3",
+              !isOpen && !isSmallScreen && "justify-center px-2"
+            )}>
               <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground">
                 U
               </div>
-              <div className="text-sidebar-foreground">
+              <div className={cn("text-sidebar-foreground transition-opacity", 
+                !isOpen && !isSmallScreen ? "opacity-0 w-0 hidden" : "opacity-100"
+              )}>
                 <p className="text-sm font-medium">User</p>
                 <p className="text-xs opacity-70">Admin</p>
               </div>
@@ -95,6 +149,12 @@ const Sidebar = () => {
           </div>
         </div>
       </aside>
+
+      {/* Content shift when sidebar is open on desktop */}
+      <div className={cn(
+        "transition-all duration-200 ease-in-out md:pl-0",
+        isOpen && !isSmallScreen ? "md:pl-64" : isSmallScreen ? "pl-0" : "md:pl-16"
+      )} />
     </>
   );
 };
