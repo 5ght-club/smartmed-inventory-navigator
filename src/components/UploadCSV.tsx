@@ -80,7 +80,7 @@ const UploadCSV = () => {
       if (deleteError) throw deleteError;
 
       // Then insert the new inventory data
-      const supabaseData = items.map(item => ({
+      const inventoryData = items.map(item => ({
         user_id: user.id,
         name: item.name,
         category: item.category,
@@ -94,7 +94,7 @@ const UploadCSV = () => {
 
       const { error: insertError } = await supabase
         .from('inventory_data')
-        .insert(supabaseData);
+        .insert(inventoryData);
       
       if (insertError) throw insertError;
       
