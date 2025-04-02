@@ -5,12 +5,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 import { Upload, Check, AlertCircle } from "lucide-react";
 import { useInventoryStore } from "@/stores/inventoryStore";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const UploadCSV = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { setInventory } = useInventoryStore();
+  const { user } = useAuth();
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -61,6 +64,49 @@ const UploadCSV = () => {
     }
   };
 
+  const saveToSupabase = async (items: any[]) => {
+    if (!user) {
+      toast.error("You must be logged in to save inventory data");
+      return;
+    }
+
+    try {
+      // First delete existing inventory data for this user
+      const { error: deleteError } = await supabase
+        .from('inventory_data')
+        .delete()
+        .eq('user_id', user.id);
+      
+      if (deleteError) throw deleteError;
+
+      // Then insert the new inventory data
+      const supabaseData = items.map(item => ({
+        user_id: user.id,
+        name: item.name,
+        category: item.category,
+        current_stock: item.currentStock,
+        minimum_stock: item.minimumStock,
+        expiry_date: item.expiryDate,
+        unit_price: item.unitPrice,
+        supplier: item.supplier || null,
+        location: item.location || null
+      }));
+
+      const { error: insertError } = await supabase
+        .from('inventory_data')
+        .insert(supabaseData);
+      
+      if (insertError) throw insertError;
+      
+      return true;
+
+    } catch (error: any) {
+      console.error("Error saving to Supabase:", error);
+      toast.error(`Failed to save to database: ${error.message}`);
+      return false;
+    }
+  };
+
   const processFile = async (file: File) => {
     if (!file || !file.name.endsWith('.csv')) {
       toast.error("Please upload a valid CSV file");
@@ -76,9 +122,18 @@ const UploadCSV = () => {
       // Set data to our store
       setInventory(data);
       
-      toast.success("Inventory data uploaded successfully!", {
-        description: `${data.length} items imported.`
-      });
+      // Save to Supabase
+      const saveSuccess = await saveToSupabase(data);
+      
+      if (saveSuccess) {
+        toast.success("Inventory data uploaded successfully!", {
+          description: `${data.length} items imported and saved to your account.`
+        });
+      } else {
+        toast.warning("Data loaded locally but not saved to your account", {
+          description: "Please try again or contact support if the issue persists."
+        });
+      }
     } catch (error: any) {
       toast.error("Failed to process CSV file", {
         description: error.message || "Unknown error occurred"
@@ -164,7 +219,7 @@ const UploadCSV = () => {
         <div className="flex items-start space-x-2">
           <Check className="h-5 w-5 text-medical-green mt-0.5" />
           <div className="text-sm text-muted-foreground">
-            <p>Sample data will be used if no CSV is uploaded</p>
+            <p>Your data will be securely stored in your account</p>
           </div>
         </div>
       </CardFooter>

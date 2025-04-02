@@ -6,14 +6,18 @@ import {
   BarChart4, 
   Settings as SettingsIcon,
   Menu,
-  X
+  X,
+  MessageSquare,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { signOut } = useAuth();
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -23,8 +27,14 @@ const Sidebar = () => {
     { title: "Dashboard", path: "/", icon: <LayoutDashboard className="h-5 w-5" /> },
     { title: "Inventory", path: "/inventory", icon: <Package className="h-5 w-5" /> },
     { title: "Analytics", path: "/analytics", icon: <BarChart4 className="h-5 w-5" /> },
+    { title: "AI Chat", path: "/ai-chat", icon: <MessageSquare className="h-5 w-5" /> },
     { title: "Settings", path: "/settings", icon: <SettingsIcon className="h-5 w-5" /> },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsOpen(false);
+  };
 
   return (
     <>
@@ -64,13 +74,23 @@ const Sidebar = () => {
           ))}
         </nav>
         <div className="p-4 border-t border-sidebar-border/20">
-          <div className="flex items-center space-x-3 px-4 py-3">
-            <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground">
-              U
-            </div>
-            <div className="text-sidebar-foreground">
-              <p className="text-sm font-medium">User</p>
-              <p className="text-xs opacity-70">Admin</p>
+          <div className="flex flex-col space-y-2">
+            <Button 
+              variant="ghost" 
+              className="flex items-center justify-start text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              onClick={handleSignOut}
+            >
+              <LogOut className="h-5 w-5 mr-3" />
+              Sign Out
+            </Button>
+            <div className="flex items-center space-x-3 px-4 py-3">
+              <div className="h-8 w-8 rounded-full bg-sidebar-accent flex items-center justify-center text-sidebar-foreground">
+                U
+              </div>
+              <div className="text-sidebar-foreground">
+                <p className="text-sm font-medium">User</p>
+                <p className="text-xs opacity-70">Admin</p>
+              </div>
             </div>
           </div>
         </div>
