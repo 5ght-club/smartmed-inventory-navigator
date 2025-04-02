@@ -52,6 +52,36 @@ const UploadCSV = () => {
     }
   };
 
+  const formatDateString = (dateStr: string) => {
+    if (!dateStr) return null;
+    
+    // Try to parse various date formats and convert to YYYY-MM-DD
+    try {
+      // Check if it's already in YYYY-MM-DD format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return dateStr;
+      }
+      
+      // Handle DD-MM-YYYY format
+      if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+        const [day, month, year] = dateStr.split('-');
+        return `${year}-${month}-${day}`;
+      }
+      
+      // Handle MM/DD/YYYY format
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+        const [month, day, year] = dateStr.split('/');
+        return `${year}-${month}-${day}`;
+      }
+      
+      // If we couldn't parse it, return null
+      return null;
+    } catch (error) {
+      console.log("Error parsing date:", dateStr);
+      return null;
+    }
+  };
+
   const saveToSupabase = async (items: any[]) => {
     if (!user) {
       toast.error("You must be logged in to save inventory data");
@@ -69,6 +99,10 @@ const UploadCSV = () => {
 
       // Prepare data for insertion with proper type conversion
       const inventoryData = items.map(item => {
+        // Get the expiry date and format it correctly, if it exists
+        const rawExpiryDate = item.expiryDate || item.expiry_date || item["Expiry Date"] || null;
+        const formattedExpiryDate = formatDateString(rawExpiryDate);
+
         // Create an object that matches the required Supabase table structure
         return {
           user_id: user.id,
@@ -77,7 +111,7 @@ const UploadCSV = () => {
           category: String(item.category || item.Category || "Uncategorized"),
           current_stock: Number(item.currentStock || item.current_stock || item["Current Stock"] || 0),
           minimum_stock: Number(item.minimumStock || item.minimum_stock || item["Minimum Stock"] || 0),
-          expiry_date: item.expiryDate || item.expiry_date || item["Expiry Date"] || null,
+          expiry_date: formattedExpiryDate,
           unit_price: Number(item.unitPrice || item.unit_price || item["Unit Price"] || 0),
           supplier: item.supplier || item.Supplier || null,
           location: item.location || item.Location || null
