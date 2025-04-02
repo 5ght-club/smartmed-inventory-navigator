@@ -15,7 +15,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-background z-10 border-b py-4 px-6 flex items-center justify-between">
+    <header className="bg-background fixed top-0 left-0 right-0 z-10 border-b py-4 px-6 flex items-center justify-between md:ml-64">
       <h1 className="text-2xl font-bold text-foreground">{getPageTitle()}</h1>
       
       <div className="flex items-center space-x-4">

@@ -3,7 +3,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Upload, Check, AlertCircle } from "lucide-react";
+import { Upload, Check } from "lucide-react";
 import { useInventoryStore } from "@/stores/inventoryStore";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,14 +29,6 @@ const UploadCSV = () => {
       const lines = text.split("\n");
       const headers = lines[0].split(",").map(header => header.trim());
       
-      // Validate required headers
-      const requiredHeaders = ["id", "name", "category", "currentStock", "minimumStock", "expiryDate", "unitPrice"];
-      const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
-      
-      if (missingHeaders.length > 0) {
-        throw new Error(`CSV is missing required headers: ${missingHeaders.join(", ")}`);
-      }
-      
       const items = [];
       
       for (let i = 1; i < lines.length; i++) {
@@ -46,12 +38,8 @@ const UploadCSV = () => {
         const item: Record<string, any> = {};
         
         headers.forEach((header, index) => {
-          // Parse numeric values
-          if (["currentStock", "minimumStock", "unitPrice"].includes(header)) {
-            item[header] = parseFloat(values[index]);
-          } else {
-            item[header] = values[index];
-          }
+          // Store all values as strings initially
+          item[header] = values[index] || '';
         });
         
         items.push(item);
@@ -79,19 +67,22 @@ const UploadCSV = () => {
       
       if (deleteError) throw deleteError;
 
-      // Then insert the new inventory data
-      const inventoryData = items.map(item => ({
-        user_id: user.id,
-        name: item.name,
-        category: item.category,
-        current_stock: item.currentStock,
-        minimum_stock: item.minimumStock,
-        expiry_date: item.expiryDate,
-        unit_price: item.unitPrice,
-        supplier: item.supplier || null,
-        location: item.location || null
-      }));
+      // Prepare data for insertion
+      const inventoryData = items.map(item => {
+        // Creating a basic object with the required user_id
+        const baseData: Record<string, any> = { user_id: user.id };
+        
+        // Add all CSV columns to the object
+        Object.keys(item).forEach(key => {
+          // Convert key to snake_case for database
+          const dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+          baseData[dbKey] = item[key];
+        });
+        
+        return baseData;
+      });
 
+      // Insert data
       const { error: insertError } = await supabase
         .from('inventory_data')
         .insert(inventoryData);
@@ -166,7 +157,7 @@ const UploadCSV = () => {
       <CardHeader>
         <CardTitle>Import Inventory Data</CardTitle>
         <CardDescription>
-          Upload a CSV file with your medicine inventory details
+          Upload a CSV file with your inventory details
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -206,16 +197,6 @@ const UploadCSV = () => {
         </div>
       </CardContent>
       <CardFooter className="flex flex-col items-start space-y-4">
-        <div className="flex items-start space-x-2">
-          <AlertCircle className="h-5 w-5 text-medical-orange mt-0.5" />
-          <div className="text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Required CSV format:</p>
-            <p>Your CSV file must include these columns:</p>
-            <p className="font-mono text-xs bg-muted p-1.5 rounded mt-1">
-              id, name, category, currentStock, minimumStock, expiryDate, unitPrice
-            </p>
-          </div>
-        </div>
         <div className="flex items-start space-x-2">
           <Check className="h-5 w-5 text-medical-green mt-0.5" />
           <div className="text-sm text-muted-foreground">
