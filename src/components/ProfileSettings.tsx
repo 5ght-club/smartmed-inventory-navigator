@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,7 +47,7 @@ const ProfileSettings = () => {
 
   // Update form values when profile is loaded - using useEffect to avoid infinite render loop
   // Only update the form when the profile data changes
-  useState(() => {
+  useEffect(() => {
     if (profile && !form.getValues().firstName) {
       form.reset({
         firstName: profile.firstName,
