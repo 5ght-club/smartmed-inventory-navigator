@@ -3,10 +3,11 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Upload, Check } from "lucide-react";
+import { Upload, Check, FileText, AlertCircle } from "lucide-react";
 import { useInventoryStore } from "@/stores/inventoryStore";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface UploadCSVProps {
   onSuccess?: () => void;
@@ -197,6 +198,38 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
     fileInputRef.current?.click();
   };
 
+  const csvRequiredFields = [
+    { field: "name/Name", description: "Name of the medicine/product" },
+    { field: "category/Category", description: "Product category (e.g., Pain Relief, Antibiotics)" },
+    { field: "currentStock/current_stock/Current Stock", description: "Current quantity in stock" },
+    { field: "minimumStock/minimum_stock/Minimum Stock", description: "Minimum required quantity" },
+    { field: "unitPrice/unit_price/Unit Price", description: "Price per unit" },
+    { field: "expiryDate/expiry_date/Expiry Date", description: "Expiry date (YYYY-MM-DD, DD-MM-YYYY, or MM/DD/YYYY)" },
+    { field: "supplier/Supplier", description: "Supplier name (optional)" },
+    { field: "location/Location", description: "Storage location (optional)" }
+  ];
+
+  const downloadSampleCSV = () => {
+    const headers = "name,category,currentStock,minimumStock,unitPrice,expiryDate,supplier,location";
+    const sampleRow1 = "Paracetamol 500mg,Pain Relief,120,50,0.15,2024-12-31,PharmaCorp,Shelf A1";
+    const sampleRow2 = "Amoxicillin 250mg,Antibiotics,45,60,0.45,2024-10-15,MediSource,Shelf B2";
+    
+    const csvContent = [headers, sampleRow1, sampleRow2].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "sample_inventory.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Sample CSV downloaded", {
+      description: "Use this as a template for your inventory data"
+    });
+  };
+
   return (
     <Card className={`border-2 ${isDragging ? 'border-dashed border-primary' : ''}`}>
       <CardHeader>
@@ -205,7 +238,33 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
           Upload a CSV file with your inventory details
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <Alert variant="warning">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>CSV Format Instructions</AlertTitle>
+          <AlertDescription className="mt-2">
+            <p className="mb-2">Your CSV file should include the following columns (column names are case-sensitive):</p>
+            <ul className="space-y-1 pl-5 list-disc text-sm">
+              {csvRequiredFields.map((field, index) => (
+                <li key={index}>
+                  <span className="font-semibold">{field.field}</span>: {field.description}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1 text-xs"
+                onClick={downloadSampleCSV}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Download Sample CSV
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center ${
             isDragging ? 'bg-primary/5 border-primary' : 'border-muted'
@@ -236,7 +295,7 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
               onClick={handleButtonClick}
               disabled={isUploading}
             >
-              Select File
+              {isUploading ? "Uploading..." : "Select File"}
             </Button>
           </div>
         </div>
