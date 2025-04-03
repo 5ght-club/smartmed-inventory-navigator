@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -13,9 +14,9 @@ import {
   Pie,
   Cell
 } from "recharts";
-import { useInventoryStore } from "@/stores/inventoryStore";
+import { useInventoryStore, InventoryItem as StoreInventoryItem } from "@/stores/inventoryStore";
 import { useEffect } from "react";
-import { inventoryTable } from "@/types/supabase-adapter";
+import { inventoryTable, InventoryItem as SupabaseInventoryItem } from "@/types/supabase-adapter";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Analytics = () => {
@@ -36,7 +37,19 @@ const Analytics = () => {
         }
         
         if (data) {
-          setInventory(data);
+          // Convert from Supabase format to Store format
+          const storeItems = data.map(item => ({
+            id: item.id,
+            name: item.name,
+            category: item.category,
+            currentStock: item.current_stock,
+            minimumStock: item.minimum_stock,
+            expiryDate: item.expiry_date || "",
+            unitPrice: item.unit_price,
+            supplier: item.supplier || "",
+            location: item.location || ""
+          }));
+          setInventory(storeItems);
         }
       } catch (error) {
         console.error("Error in fetchInventory:", error);
@@ -71,9 +84,9 @@ const Analytics = () => {
     ];
     
     inventory.forEach(item => {
-      if (item.current_stock <= item.minimum_stock) {
+      if (item.currentStock <= item.minimumStock) {
         levels[0].value++;
-      } else if (item.current_stock <= item.minimum_stock * 2) {
+      } else if (item.currentStock <= item.minimumStock * 2) {
         levels[1].value++;
       } else {
         levels[2].value++;
@@ -88,7 +101,7 @@ const Analytics = () => {
     const categoryValues: Record<string, number> = {};
     
     inventory.forEach(item => {
-      const value = item.current_stock * item.unit_price;
+      const value = item.currentStock * Number(item.unitPrice);
       if (!categoryValues[item.category]) {
         categoryValues[item.category] = 0;
       }

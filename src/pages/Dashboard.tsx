@@ -11,7 +11,11 @@ const Dashboard = () => {
   
   // Calculate dashboard metrics
   const totalItems = inventory.length;
-  const totalValue = inventory.reduce((sum, item) => sum + (item.currentStock * item.unitPrice), 0).toFixed(2);
+  const totalValue = inventory.reduce((sum, item) => {
+    const price = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) : item.unitPrice;
+    return sum + (item.currentStock * price);
+  }, 0).toFixed(2);
+  
   const lowStockItems = inventory.filter(item => item.currentStock <= item.minimumStock).length;
   const expiringItems = inventory.filter(item => {
     const expiryDate = new Date(item.expiryDate);

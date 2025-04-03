@@ -45,7 +45,7 @@ export interface ProfileFormValues {
 // Define a type for table names
 type TableName = 'inventory_data' | 'chat_history' | 'profiles';
 
-// Custom generic adapter function to help with type safety when using tables
+// Modified adapter function to avoid excessive type instantiation depth
 export const createTableAdapter = <T>(tableName: TableName) => {
   return {
     select: () => {
@@ -74,7 +74,7 @@ export const createTableAdapter = <T>(tableName: TableName) => {
       Object.entries(match).forEach(([key, value]) => {
         query.eq(key, value);
       });
-      return query.single() as unknown as Promise<{ data: T | null; error: any }>;
+      return query.maybeSingle() as unknown as Promise<{ data: T | null; error: any }>;
     }
   };
 };
