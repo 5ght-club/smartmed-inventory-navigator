@@ -8,7 +8,11 @@ import { useInventoryStore } from "@/stores/inventoryStore";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-const UploadCSV = () => {
+interface UploadCSVProps {
+  onSuccess?: () => void;
+}
+
+const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -156,6 +160,11 @@ const UploadCSV = () => {
         toast.success("Inventory data uploaded successfully!", {
           description: `${data.length} items imported and saved to your account.`
         });
+        
+        // Call the onSuccess callback if provided
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
         toast.warning("Data loaded locally but not saved to your account", {
           description: "Please try again or contact support if the issue persists."

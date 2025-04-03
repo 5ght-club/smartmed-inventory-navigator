@@ -17,11 +17,19 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Download, Plus, Pill, Calendar, Clipboard, AlertCircle } from "lucide-react";
+import { Search, Filter, Download, Plus, Pill, Calendar, Clipboard, AlertCircle, Upload } from "lucide-react";
 import { useInventoryStore } from "@/stores/inventoryStore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import UploadCSV from "@/components/UploadCSV";
 
 const Inventory = () => {
   const { inventory } = useInventoryStore();
@@ -29,6 +37,7 @@ const Inventory = () => {
   const [filteredInventory, setFilteredInventory] = useState(inventory);
   const [categoryFilter, setCategoryFilter] = useState("");
   const [stockFilter, setStockFilter] = useState("");
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   // Get unique categories for filter
   const categories = Array.from(new Set(inventory.map(item => item.category))).sort();
@@ -167,7 +176,7 @@ const Inventory = () => {
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="">All Categories</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
@@ -182,7 +191,7 @@ const Inventory = () => {
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="">All Levels</SelectItem>
                   <SelectItem value="low">Low Stock</SelectItem>
                   <SelectItem value="medium">Medium Stock</SelectItem>
                   <SelectItem value="high">High Stock</SelectItem>
@@ -194,6 +203,11 @@ const Inventory = () => {
               <Button variant="outline" onClick={exportCSV}>
                 <Download className="h-4 w-4 mr-2" />
                 Export
+              </Button>
+              
+              <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                Import
               </Button>
               
               <Button>
@@ -320,6 +334,21 @@ const Inventory = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Import CSV Dialog */}
+      <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Import Inventory Data</DialogTitle>
+            <DialogDescription>
+              Upload a CSV file to update your inventory
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <UploadCSV onSuccess={() => setIsImportDialogOpen(false)} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
