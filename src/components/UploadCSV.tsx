@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -239,10 +238,10 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Alert variant="warning">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>CSV Format Instructions</AlertTitle>
-          <AlertDescription className="mt-2">
+        <Alert variant="default" className="bg-amber-50 border-amber-200">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-700">CSV Format Instructions</AlertTitle>
+          <AlertDescription className="mt-2 text-amber-700">
             <p className="mb-2">Your CSV file should include the following columns (column names are case-sensitive):</p>
             <ul className="space-y-1 pl-5 list-disc text-sm">
               {csvRequiredFields.map((field, index) => (
@@ -255,7 +254,7 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="flex items-center gap-1 text-xs"
+                className="flex items-center gap-1 text-xs bg-white"
                 onClick={downloadSampleCSV}
               >
                 <FileText className="h-3.5 w-3.5" />
