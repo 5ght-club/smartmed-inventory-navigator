@@ -4,9 +4,11 @@ import { useInventoryStore } from "@/stores/inventoryStore";
 import { AlertCircle, Pill, ShoppingCart, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useNotificationStore } from "@/stores/notificationStore";
 
 const LowStockAlerts = () => {
   const { inventory } = useInventoryStore();
+  const { addNotification } = useNotificationStore();
   
   // Get items with low stock
   const lowStockItems = inventory
@@ -17,12 +19,21 @@ const LowStockAlerts = () => {
     .slice(0, 5); // Top 5 lowest items
 
   const handleReorder = (itemId: string, itemName: string) => {
+    // Show toast notification
     toast.success(`Reorder initiated for ${itemName}`, {
       description: "Purchase order has been created",
       action: {
         label: "View Order",
         onClick: () => console.log(`View order for item ${itemId}`)
       }
+    });
+    
+    // Add to notification center
+    addNotification({
+      title: `Reorder: ${itemName}`,
+      message: `A purchase order has been created for ${itemName}`,
+      type: "reorder",
+      link: "/inventory"
     });
   };
 
