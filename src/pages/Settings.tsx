@@ -1,8 +1,9 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Bell, Lock } from "lucide-react";
 import ProfileSettings from "@/components/ProfileSettings";
+import NotificationSettings from "@/components/NotificationSettings";
+import SecuritySettings from "@/components/SecuritySettings";
 
 const Settings = () => {
   return (
@@ -35,35 +36,11 @@ const Settings = () => {
         </TabsContent>
         
         <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>
-                Configure how you receive notifications and alerts.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Notification settings will be implemented in a future update.
-              </p>
-            </CardContent>
-          </Card>
+          <NotificationSettings />
         </TabsContent>
         
         <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>
-                Manage your security preferences and account access.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Security settings will be implemented in a future update.
-              </p>
-            </CardContent>
-          </Card>
+          <SecuritySettings />
         </TabsContent>
       </Tabs>
     </div>
