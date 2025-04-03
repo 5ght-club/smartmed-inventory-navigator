@@ -176,7 +176,7 @@ const Inventory = () => {
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
@@ -191,7 +191,7 @@ const Inventory = () => {
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Levels</SelectItem>
+                  <SelectItem value="all">All Levels</SelectItem>
                   <SelectItem value="low">Low Stock</SelectItem>
                   <SelectItem value="medium">Medium Stock</SelectItem>
                   <SelectItem value="high">High Stock</SelectItem>
