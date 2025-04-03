@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 import { Upload, Check, FileText, AlertCircle } from "lucide-react";
 import { useInventoryStore } from "@/stores/inventoryStore";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { inventoryTable } from "@/types/supabase-adapter";
 
 interface UploadCSVProps {
   onSuccess?: () => void;
@@ -94,10 +94,7 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
 
     try {
       // First delete existing inventory data for this user
-      const { error: deleteError } = await supabase
-        .from('inventory_data')
-        .delete()
-        .eq('user_id', user.id);
+      const { error: deleteError } = await inventoryTable.delete({ user_id: user.id });
       
       if (deleteError) throw deleteError;
 
@@ -123,9 +120,7 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
       });
 
       // Insert data
-      const { error: insertError } = await supabase
-        .from('inventory_data')
-        .insert(inventoryData);
+      const { error: insertError } = await inventoryTable.insert(inventoryData);
       
       if (insertError) throw insertError;
       

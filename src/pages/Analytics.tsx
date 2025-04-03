@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -15,9 +14,37 @@ import {
   Cell
 } from "recharts";
 import { useInventoryStore } from "@/stores/inventoryStore";
+import { useEffect } from "react";
+import { inventoryTable } from "@/types/supabase-adapter";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Analytics = () => {
-  const { inventory } = useInventoryStore();
+  const { inventory, setInventory } = useInventoryStore();
+  const { user } = useAuth();
+  
+  // Fetch inventory data from Supabase when the component mounts
+  useEffect(() => {
+    const fetchInventory = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await inventoryTable.select();
+        
+        if (error) {
+          console.error("Error fetching inventory:", error);
+          return;
+        }
+        
+        if (data) {
+          setInventory(data);
+        }
+      } catch (error) {
+        console.error("Error in fetchInventory:", error);
+      }
+    };
+    
+    fetchInventory();
+  }, [user, setInventory]);
   
   // Prepare category data for charts
   const getCategoryData = () => {
@@ -44,9 +71,9 @@ const Analytics = () => {
     ];
     
     inventory.forEach(item => {
-      if (item.currentStock <= item.minimumStock) {
+      if (item.current_stock <= item.minimum_stock) {
         levels[0].value++;
-      } else if (item.currentStock <= item.minimumStock * 2) {
+      } else if (item.current_stock <= item.minimum_stock * 2) {
         levels[1].value++;
       } else {
         levels[2].value++;
@@ -61,7 +88,7 @@ const Analytics = () => {
     const categoryValues: Record<string, number> = {};
     
     inventory.forEach(item => {
-      const value = item.currentStock * item.unitPrice;
+      const value = item.current_stock * item.unit_price;
       if (!categoryValues[item.category]) {
         categoryValues[item.category] = 0;
       }

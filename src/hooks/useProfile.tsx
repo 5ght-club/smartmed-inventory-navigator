@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserProfile, ProfileFormValues } from '@/types/profile';
+import { UserProfile, ProfileFormValues } from '@/types/supabase-adapter';
 import { toast } from 'sonner';
+import { profilesTable } from '@/types/supabase-adapter';
 
 export const useProfile = () => {
   const { user } = useAuth();
@@ -19,27 +19,20 @@ export const useProfile = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const { data, error } = await profilesTable.getOne({ id: user.id });
 
       if (error) {
         console.error('Error fetching profile:', error);
         return null;
       }
 
-      // Convert database format to our application format
-      // Use optional chaining and nullish coalescing to handle potentially missing properties
-      const userProfile: UserProfile = {
-        id: data.id,
-        email: data.email || '',
-        firstName: data.first_name || '',
-        lastName: data.last_name || '',
-        role: data.role || 'user',
-        created_at: data.created_at,
-        updated_at: data.updated_at
+      // If we have a profile, use it; otherwise create a default one
+      const userProfile: UserProfile = data || {
+        id: user.id,
+        email: user.email || '',
+        firstName: null,
+        lastName: null,
+        role: 'user'
       };
 
       setProfile(userProfile);
@@ -56,14 +49,11 @@ export const useProfile = () => {
     if (!user) return { success: false, error: 'User not authenticated' };
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: values.firstName,
-          last_name: values.lastName,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+      const { error } = await profilesTable.update({
+        first_name: values.firstName,
+        last_name: values.lastName,
+        updated_at: new Date().toISOString()
+      }, { id: user.id });
 
       if (error) {
         toast.error('Failed to update profile');
