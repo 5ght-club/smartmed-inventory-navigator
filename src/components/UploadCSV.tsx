@@ -7,6 +7,7 @@ import { useInventoryStore } from "@/stores/inventoryStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { inventoryTable } from "@/types/supabase-adapter";
+import { InventoryItem as StoreInventoryItem } from "@/stores/inventoryStore";
 
 interface UploadCSVProps {
   onSuccess?: () => void;
@@ -104,16 +105,21 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
         const rawExpiryDate = item.expiryDate || item.expiry_date || item["Expiry Date"] || null;
         const formattedExpiryDate = formatDateString(rawExpiryDate);
 
+        // Ensure numeric values are properly parsed as numbers
+        const currentStock = parseInt(item.currentStock || item.current_stock || item["Current Stock"] || 0, 10);
+        const minimumStock = parseInt(item.minimumStock || item.minimum_stock || item["Minimum Stock"] || 0, 10);
+        const unitPrice = parseFloat(item.unitPrice || item.unit_price || item["Unit Price"] || 0);
+
         // Create an object that matches the required Supabase table structure
         return {
           user_id: user.id,
           // Ensure all required fields exist with proper types
           name: String(item.name || item.Name || "Unnamed Item"),
           category: String(item.category || item.Category || "Uncategorized"),
-          current_stock: Number(item.currentStock || item.current_stock || item["Current Stock"] || 0),
-          minimum_stock: Number(item.minimumStock || item.minimum_stock || item["Minimum Stock"] || 0),
+          current_stock: isNaN(currentStock) ? 0 : currentStock,
+          minimum_stock: isNaN(minimumStock) ? 0 : minimumStock,
           expiry_date: formattedExpiryDate,
-          unit_price: Number(item.unitPrice || item.unit_price || item["Unit Price"] || 0),
+          unit_price: isNaN(unitPrice) ? 0 : unitPrice,
           supplier: item.supplier || item.Supplier || null,
           location: item.location || item.Location || null
         };
@@ -145,8 +151,21 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
       const text = await file.text();
       const data = parseCSV(text);
       
+      // Convert the parsed data to match our store's expected format
+      const storeItems: StoreInventoryItem[] = data.map(item => ({
+        id: item.id || Math.random().toString(36).substring(2, 11),
+        name: String(item.name || item.Name || "Unnamed Item"),
+        category: String(item.category || item.Category || "Uncategorized"),
+        currentStock: parseInt(item.currentStock || item.current_stock || item["Current Stock"] || 0, 10),
+        minimumStock: parseInt(item.minimumStock || item.minimum_stock || item["Minimum Stock"] || 0, 10),
+        expiryDate: item.expiryDate || item.expiry_date || item["Expiry Date"] || "",
+        unitPrice: parseFloat(item.unitPrice || item.unit_price || item["Unit Price"] || 0),
+        supplier: item.supplier || item.Supplier || "",
+        location: item.location || item.Location || ""
+      }));
+      
       // Set data to our store
-      setInventory(data);
+      setInventory(storeItems);
       
       // Save to Supabase
       const saveSuccess = await saveToSupabase(data);

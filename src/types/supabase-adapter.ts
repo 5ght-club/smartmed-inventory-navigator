@@ -42,8 +42,11 @@ export interface ProfileFormValues {
   lastName: string;
 }
 
+// Define a type for table names
+type TableName = 'inventory_data' | 'chat_history' | 'profiles';
+
 // Custom generic adapter function to help with type safety when using tables
-export const createTableAdapter = <T>(tableName: string) => {
+export const createTableAdapter = <T>(tableName: TableName) => {
   return {
     select: () => {
       return supabase.from(tableName).select() as unknown as Promise<{ data: T[] | null; error: any }>;

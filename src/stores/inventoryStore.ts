@@ -9,7 +9,7 @@ export interface InventoryItem {
   currentStock: number;
   minimumStock: number;
   expiryDate: string;
-  unitPrice: number;
+  unitPrice: number | string; // Support both number and string types to prevent conversion errors
   lastUpdated?: string;
   supplier?: string;
   location?: string;

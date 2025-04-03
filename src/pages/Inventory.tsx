@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Table, 
@@ -141,6 +140,15 @@ const Inventory = () => {
     return { class: "bg-green-100 text-medical-green", text: "Valid" };
   };
 
+  // Helper function to safely format currency values
+  const formatCurrency = (value: any): string => {
+    // Ensure the value is a number before calling toFixed
+    const numValue = typeof value === 'number' ? value : Number(value);
+    
+    // Check if it's a valid number
+    return !isNaN(numValue) ? numValue.toFixed(2) : '0.00';
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -234,7 +242,7 @@ const Inventory = () => {
                 <TableBody>
                   {filteredInventory.length > 0 ? (
                     filteredInventory.map((item) => {
-                      const expiryStatus = getExpiryStatus(item.expiryDate);
+                      const expiryStatus = item.expiryDate ? getExpiryStatus(item.expiryDate) : { class: "", text: "No date" };
                       return (
                         <TableRow key={item.id} className="hover:bg-muted/30">
                           <TableCell className="font-medium">{item.id}</TableCell>
@@ -273,13 +281,15 @@ const Inventory = () => {
                           <TableCell>
                             <div className="flex flex-col">
                               <span>{item.expiryDate}</span>
-                              <span className={`text-xs px-2 py-0.5 rounded-full inline-flex items-center mt-1 ${expiryStatus.class}`}>
-                                <Calendar className="h-3 w-3 mr-1" />
-                                {expiryStatus.text}
-                              </span>
+                              {item.expiryDate && (
+                                <span className={`text-xs px-2 py-0.5 rounded-full inline-flex items-center mt-1 ${expiryStatus.class}`}>
+                                  <Calendar className="h-3 w-3 mr-1" />
+                                  {expiryStatus.text}
+                                </span>
+                              )}
                             </div>
                           </TableCell>
-                          <TableCell className="font-medium">${item.unitPrice.toFixed(2)}</TableCell>
+                          <TableCell className="font-medium">${formatCurrency(item.unitPrice)}</TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
                               <Button 
