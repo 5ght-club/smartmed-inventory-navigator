@@ -31,6 +31,7 @@ export const useProfile = () => {
       }
 
       // Convert database format to our application format
+      // Use optional chaining and nullish coalescing to handle potentially missing properties
       const userProfile: UserProfile = {
         id: data.id,
         email: data.email || '',
