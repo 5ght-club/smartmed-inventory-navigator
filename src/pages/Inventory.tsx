@@ -55,13 +55,13 @@ const Inventory = () => {
       );
     }
     
-    // Apply category filter
-    if (categoryFilter) {
+    // Apply category filter (use empty string or "all" as no filter)
+    if (categoryFilter && categoryFilter !== "all") {
       results = results.filter(item => item.category === categoryFilter);
     }
     
-    // Apply stock level filter
-    if (stockFilter) {
+    // Apply stock level filter (use empty string or "all" as no filter)
+    if (stockFilter && stockFilter !== "all") {
       switch (stockFilter) {
         case "low":
           results = results.filter(item => item.currentStock <= item.minimumStock);
