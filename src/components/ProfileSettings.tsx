@@ -45,14 +45,17 @@ const ProfileSettings = () => {
     },
   });
 
-  // Update form values when profile is loaded
-  if (profile && !form.getValues().firstName) {
-    form.reset({
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      email: profile.email,
-    });
-  }
+  // Update form values when profile is loaded - using useEffect to avoid infinite render loop
+  // Only update the form when the profile data changes
+  useState(() => {
+    if (profile && !form.getValues().firstName) {
+      form.reset({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        email: profile.email,
+      });
+    }
+  }, [profile, form]);
 
   const onSubmit = async (values: ProfileFormValues) => {
     setIsSaving(true);
