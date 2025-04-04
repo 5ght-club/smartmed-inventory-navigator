@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfile, ProfileFormValues } from '@/types/supabase-adapter';
 import { toast } from 'sonner';
-import { profilesTable } from '@/types/supabase-adapter';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useProfile = () => {
@@ -20,7 +19,6 @@ export const useProfile = () => {
 
     try {
       setLoading(true);
-      // Use the Supabase client directly to handle column name mapping
       const { data, error } = await supabase
         .from('profiles')
         .select('*')

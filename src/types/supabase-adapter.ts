@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestResponse } from '@supabase/supabase-js';
+import { Database } from '@/integrations/supabase/types';
 
 // Custom type adapter for inventory data, matches our database structure
 export interface InventoryItem {
@@ -43,41 +44,62 @@ export interface ProfileFormValues {
   lastName: string;
 }
 
-// Create a simplified table adapter for Supabase tables
-export const createTableAdapter = <T>(tableName: string) => {
-  return {
-    select: async () => {
-      return await supabase.from(tableName).select();
-    },
-    insert: async (data: any) => {
-      return await supabase.from(tableName).insert(data);
-    },
-    update: async (data: any, match: Record<string, any>) => {
-      const query = supabase.from(tableName).update(data);
-      Object.entries(match).forEach(([key, value]) => {
-        query.eq(key, value);
-      });
-      return await query;
-    },
-    delete: async (match: Record<string, any>) => {
-      const query = supabase.from(tableName).delete();
-      Object.entries(match).forEach(([key, value]) => {
-        query.eq(key, value);
-      });
-      return await query;
-    },
-    // Helper method to get a specific record
-    getOne: async (match: Record<string, any>) => {
-      const query = supabase.from(tableName).select();
-      Object.entries(match).forEach(([key, value]) => {
-        query.eq(key, value);
-      });
-      return await query.maybeSingle();
-    }
-  };
+// Create simplified adapters for our tables
+export const inventoryTable = {
+  select: async () => {
+    return await supabase.from('inventory_data').select('*');
+  },
+  insert: async (data: any) => {
+    return await supabase.from('inventory_data').insert(data);
+  },
+  update: async (data: any, match: Record<string, any>) => {
+    const query = supabase.from('inventory_data').update(data);
+    Object.entries(match).forEach(([key, value]) => {
+      query.eq(key, value);
+    });
+    return await query;
+  },
+  delete: async (match: Record<string, any>) => {
+    const query = supabase.from('inventory_data').delete();
+    Object.entries(match).forEach(([key, value]) => {
+      query.eq(key, value);
+    });
+    return await query;
+  },
+  getOne: async (match: Record<string, any>) => {
+    const query = supabase.from('inventory_data').select('*');
+    Object.entries(match).forEach(([key, value]) => {
+      query.eq(key, value);
+    });
+    return await query.maybeSingle();
+  }
 };
 
-// Create adapters for our tables
-export const inventoryTable = createTableAdapter<InventoryItem>('inventory_data');
-export const chatHistoryTable = createTableAdapter<ChatHistoryItem>('chat_history');
-export const profilesTable = createTableAdapter<UserProfile>('profiles');
+export const chatHistoryTable = {
+  select: async () => {
+    return await supabase.from('chat_history').select('*');
+  },
+  insert: async (data: any) => {
+    return await supabase.from('chat_history').insert(data);
+  }
+};
+
+export const profilesTable = {
+  select: async () => {
+    return await supabase.from('profiles').select('*');
+  },
+  update: async (data: any, match: Record<string, any>) => {
+    const query = supabase.from('profiles').update(data);
+    Object.entries(match).forEach(([key, value]) => {
+      query.eq(key, value);
+    });
+    return await query;
+  },
+  getOne: async (match: Record<string, any>) => {
+    const query = supabase.from('profiles').select('*');
+    Object.entries(match).forEach(([key, value]) => {
+      query.eq(key, value);
+    });
+    return await query.maybeSingle();
+  }
+};

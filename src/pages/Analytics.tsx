@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -16,7 +15,7 @@ import {
 } from "recharts";
 import { useInventoryStore, InventoryItem as StoreInventoryItem } from "@/stores/inventoryStore";
 import { useEffect } from "react";
-import { inventoryTable, InventoryItem as SupabaseInventoryItem } from "@/types/supabase-adapter";
+import { inventoryTable } from "@/types/supabase-adapter";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Analytics = () => {
