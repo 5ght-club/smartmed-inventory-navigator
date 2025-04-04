@@ -9,7 +9,105 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      chat_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          query: string
+          response: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          query: string
+          response: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          query?: string
+          response?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      inventory_data: {
+        Row: {
+          category: string
+          created_at: string | null
+          current_stock: number
+          expiry_date: string | null
+          id: string
+          location: string | null
+          minimum_stock: number
+          name: string
+          supplier: string | null
+          unit_price: number
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          current_stock?: number
+          expiry_date?: string | null
+          id?: string
+          location?: string | null
+          minimum_stock?: number
+          name: string
+          supplier?: string | null
+          unit_price?: number
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          current_stock?: number
+          expiry_date?: string | null
+          id?: string
+          location?: string | null
+          minimum_stock?: number
+          name?: string
+          supplier?: string | null
+          unit_price?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

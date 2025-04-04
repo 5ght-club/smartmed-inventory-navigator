@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { PostgrestResponse } from '@supabase/supabase-js';
 
 // Custom type adapter for inventory data, matches our database structure
 export interface InventoryItem {
@@ -42,45 +43,36 @@ export interface ProfileFormValues {
   lastName: string;
 }
 
-// Define the Supabase response type to avoid complex generics
-interface SupabaseResponse<T> {
-  data: T | null;
-  error: any;
-}
-
-// Define a type for table names
-type TableName = 'inventory_data' | 'chat_history' | 'profiles';
-
-// Simplified adapter function that avoids excessive type instantiation depth
-export const createTableAdapter = <T>(tableName: TableName) => {
+// Create a simplified table adapter for Supabase tables
+export const createTableAdapter = <T>(tableName: string) => {
   return {
-    select: (): Promise<SupabaseResponse<T[]>> => {
-      return supabase.from(tableName).select() as unknown as Promise<SupabaseResponse<T[]>>;
+    select: async () => {
+      return await supabase.from(tableName).select();
     },
-    insert: (data: any): Promise<SupabaseResponse<T[]>> => {
-      return supabase.from(tableName).insert(data) as unknown as Promise<SupabaseResponse<T[]>>;
+    insert: async (data: any) => {
+      return await supabase.from(tableName).insert(data);
     },
-    update: (data: any, match: Record<string, any>): Promise<SupabaseResponse<T[]>> => {
+    update: async (data: any, match: Record<string, any>) => {
       const query = supabase.from(tableName).update(data);
       Object.entries(match).forEach(([key, value]) => {
         query.eq(key, value);
       });
-      return query as unknown as Promise<SupabaseResponse<T[]>>;
+      return await query;
     },
-    delete: (match: Record<string, any>): Promise<SupabaseResponse<T[]>> => {
+    delete: async (match: Record<string, any>) => {
       const query = supabase.from(tableName).delete();
       Object.entries(match).forEach(([key, value]) => {
         query.eq(key, value);
       });
-      return query as unknown as Promise<SupabaseResponse<T[]>>;
+      return await query;
     },
     // Helper method to get a specific record
-    getOne: (match: Record<string, any>): Promise<SupabaseResponse<T>> => {
+    getOne: async (match: Record<string, any>) => {
       const query = supabase.from(tableName).select();
       Object.entries(match).forEach(([key, value]) => {
         query.eq(key, value);
       });
-      return query.maybeSingle() as unknown as Promise<SupabaseResponse<T>>;
+      return await query.maybeSingle();
     }
   };
 };
