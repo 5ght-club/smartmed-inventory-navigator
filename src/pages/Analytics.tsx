@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -14,29 +15,38 @@ import {
   Cell
 } from "recharts";
 import { useInventoryStore, InventoryItem as StoreInventoryItem } from "@/stores/inventoryStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Analytics = () => {
   const { inventory, setInventory } = useInventoryStore();
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
   
   // Fetch inventory data from Supabase when the component mounts
   useEffect(() => {
     const fetchInventory = async () => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       
       try {
+        setLoading(true);
         // @ts-ignore - Ignore type errors for Supabase query
-        const { data, error } = await supabase.from('inventory_data').select('*');
+        const { data, error } = await supabase
+          .from('inventory_data')
+          .select('*')
+          .eq('user_id', user.id);
         
         if (error) {
           console.error("Error fetching inventory:", error);
           return;
         }
         
-        if (data) {
+        if (data && data.length > 0) {
           // Convert from Supabase format to Store format
           const storeItems = data.map(item => ({
             id: item.id,
@@ -53,6 +63,8 @@ const Analytics = () => {
         }
       } catch (error) {
         console.error("Error in fetchInventory:", error);
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -120,16 +132,26 @@ const Analytics = () => {
   // Colors for pie chart
   const COLORS = ['#2D87C8', '#6ECEB2', '#FF9F5A', '#FF6B6B', '#B39DDB', '#90CAF9', '#AED581'];
 
+  // Loading skeleton
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-[300px] rounded-md" />
+        <Skeleton className="h-[400px] w-full rounded-lg" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-3">
+        <TabsList className="w-full max-w-md grid grid-cols-3 mb-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="stock">Stock Levels</TabsTrigger>
           <TabsTrigger value="value">Inventory Value</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="space-y-6 mt-6">
+        <TabsContent value="overview" className="mt-0">
           <Card>
             <CardHeader>
               <CardTitle>Inventory by Category</CardTitle>
@@ -138,38 +160,44 @@ const Analytics = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={categoryData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="name" 
-                    angle={-45} 
-                    textAnchor="end" 
-                    height={60}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value) => [`${value} items`, 'Count']}
-                    contentStyle={{ borderRadius: '8px' }}
-                  />
-                  <Legend />
-                  <Bar 
-                    dataKey="value" 
-                    name="Number of Items" 
-                    fill="#2D87C8" 
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              {inventory.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={categoryData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-45} 
+                      textAnchor="end" 
+                      height={60}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value) => [`${value} items`, 'Count']}
+                      contentStyle={{ borderRadius: '8px' }}
+                    />
+                    <Legend />
+                    <Bar 
+                      dataKey="value" 
+                      name="Number of Items" 
+                      fill="#2D87C8" 
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-muted-foreground">No inventory data available</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="stock" className="space-y-6 mt-6">
+        <TabsContent value="stock" className="mt-0">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -179,27 +207,33 @@ const Analytics = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={stockLevelData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      nameKey="name"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {stockLevelData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`${value} items`, 'Count']} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                {inventory.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={stockLevelData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        nameKey="name"
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {stockLevelData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value} items`, 'Count']} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <p className="text-muted-foreground">No inventory data available</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
             
@@ -211,40 +245,46 @@ const Analytics = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6 mt-4">
-                  {stockLevelData.map((level, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                          <div 
-                            className="w-4 h-4 rounded-full mr-2" 
-                            style={{ backgroundColor: level.color }}
-                          ></div>
-                          <span className="font-medium">{level.name}</span>
+                {inventory.length > 0 ? (
+                  <div className="space-y-6 mt-4">
+                    {stockLevelData.map((level, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center">
+                            <div 
+                              className="w-4 h-4 rounded-full mr-2" 
+                              style={{ backgroundColor: level.color }}
+                            ></div>
+                            <span className="font-medium">{level.name}</span>
+                          </div>
+                          <span className="font-bold">{level.value} items</span>
                         </div>
-                        <span className="font-bold">{level.value} items</span>
+                        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                          <div 
+                            className="h-full rounded-full" 
+                            style={{ 
+                              width: `${(level.value / inventory.length) * 100}%`,
+                              backgroundColor: level.color 
+                            }}
+                          ></div>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {((level.value / inventory.length) * 100).toFixed(1)}% of total inventory
+                        </p>
                       </div>
-                      <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                        <div 
-                          className="h-full rounded-full" 
-                          style={{ 
-                            width: `${(level.value / inventory.length) * 100}%`,
-                            backgroundColor: level.color 
-                          }}
-                        ></div>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {((level.value / inventory.length) * 100).toFixed(1)}% of total inventory
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-40 flex items-center justify-center">
+                    <p className="text-muted-foreground">No inventory data available</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         </TabsContent>
         
-        <TabsContent value="value" className="space-y-6 mt-6">
+        <TabsContent value="value" className="mt-0">
           <Card>
             <CardHeader>
               <CardTitle>Inventory Value by Category</CardTitle>
@@ -253,27 +293,33 @@ const Analytics = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={valueByCategory}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={true}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, value }) => `$${value}`}
-                  >
-                    {valueByCategory.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => [`$${value}`, 'Value']} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              {inventory.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={valueByCategory}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={true}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      nameKey="name"
+                      label={({ name, value }) => `$${value}`}
+                    >
+                      {valueByCategory.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [`$${value}`, 'Value']} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-muted-foreground">No inventory data available</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

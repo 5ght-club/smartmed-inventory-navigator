@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { Upload, Check, FileText, AlertCircle } from "lucide-react";
 import { useInventoryStore } from "@/stores/inventoryStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { inventoryTable } from "@/types/supabase-adapter";
+import { supabase } from "@/integrations/supabase/client";
 import { InventoryItem as StoreInventoryItem } from "@/stores/inventoryStore";
 
 interface UploadCSVProps {
@@ -90,12 +91,16 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
   const saveToSupabase = async (items: any[]) => {
     if (!user) {
       toast.error("You must be logged in to save inventory data");
-      return;
+      return false;
     }
 
     try {
       // First delete existing inventory data for this user
-      const { error: deleteError } = await inventoryTable.delete({ user_id: user.id });
+      // @ts-ignore - Ignore type errors for Supabase query
+      const { error: deleteError } = await supabase
+        .from('inventory_data')
+        .delete()
+        .eq('user_id', user.id);
       
       if (deleteError) throw deleteError;
 
@@ -126,7 +131,10 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
       });
 
       // Insert data
-      const { error: insertError } = await inventoryTable.insert(inventoryData);
+      // @ts-ignore - Ignore type errors for Supabase query
+      const { error: insertError } = await supabase
+        .from('inventory_data')
+        .insert(inventoryData);
       
       if (insertError) throw insertError;
       
@@ -164,13 +172,13 @@ const UploadCSV = ({ onSuccess }: UploadCSVProps) => {
         location: item.location || item.Location || ""
       }));
       
-      // Set data to our store
-      setInventory(storeItems);
-      
-      // Save to Supabase
+      // Save to Supabase first
       const saveSuccess = await saveToSupabase(data);
       
       if (saveSuccess) {
+        // If saved successfully to database, update the local store
+        setInventory(storeItems);
+        
         toast.success("Inventory data uploaded successfully!", {
           description: `${data.length} items imported and saved to your account.`
         });

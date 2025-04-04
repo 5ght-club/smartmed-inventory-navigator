@@ -52,12 +52,41 @@ export const useProfile = () => {
           };
 
       setProfile(userProfile);
+      
+      // If no profile exists yet, create one
+      if (!data) {
+        await createProfile(userProfile);
+      }
+      
       return userProfile;
     } catch (error) {
       console.error('Error in fetchProfile:', error);
       return null;
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createProfile = async (userProfile: UserProfile) => {
+    try {
+      // @ts-ignore - Ignore type errors for Supabase query
+      const { error } = await supabase
+        .from('profiles')
+        .insert({
+          id: userProfile.id,
+          email: userProfile.email,
+          first_name: userProfile.firstName,
+          last_name: userProfile.lastName,
+          role: userProfile.role || 'user',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+        
+      if (error) {
+        console.error('Error creating profile:', error);
+      }
+    } catch (error) {
+      console.error('Error in createProfile:', error);
     }
   };
 
