@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestResponse } from '@supabase/supabase-js';
 import { Database } from '@/integrations/supabase/types';
 
 // Custom type adapter for inventory data, matches our database structure
@@ -55,6 +54,7 @@ export const inventoryTable = {
   update: async (data: any, match: Record<string, any>) => {
     const query = supabase.from('inventory_data').update(data);
     Object.entries(match).forEach(([key, value]) => {
+      // @ts-ignore - Ignore type errors since we're passing dynamic keys
       query.eq(key, value);
     });
     return await query;
@@ -62,6 +62,7 @@ export const inventoryTable = {
   delete: async (match: Record<string, any>) => {
     const query = supabase.from('inventory_data').delete();
     Object.entries(match).forEach(([key, value]) => {
+      // @ts-ignore - Ignore type errors since we're passing dynamic keys
       query.eq(key, value);
     });
     return await query;
@@ -69,6 +70,7 @@ export const inventoryTable = {
   getOne: async (match: Record<string, any>) => {
     const query = supabase.from('inventory_data').select('*');
     Object.entries(match).forEach(([key, value]) => {
+      // @ts-ignore - Ignore type errors since we're passing dynamic keys
       query.eq(key, value);
     });
     return await query.maybeSingle();
@@ -91,6 +93,7 @@ export const profilesTable = {
   update: async (data: any, match: Record<string, any>) => {
     const query = supabase.from('profiles').update(data);
     Object.entries(match).forEach(([key, value]) => {
+      // @ts-ignore - Ignore type errors since we're passing dynamic keys
       query.eq(key, value);
     });
     return await query;
@@ -98,6 +101,7 @@ export const profilesTable = {
   getOne: async (match: Record<string, any>) => {
     const query = supabase.from('profiles').select('*');
     Object.entries(match).forEach(([key, value]) => {
+      // @ts-ignore - Ignore type errors since we're passing dynamic keys
       query.eq(key, value);
     });
     return await query.maybeSingle();
