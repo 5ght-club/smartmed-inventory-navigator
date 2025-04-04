@@ -42,39 +42,45 @@ export interface ProfileFormValues {
   lastName: string;
 }
 
+// Define the Supabase response type to avoid complex generics
+interface SupabaseResponse<T> {
+  data: T | null;
+  error: any;
+}
+
 // Define a type for table names
 type TableName = 'inventory_data' | 'chat_history' | 'profiles';
 
-// Modified adapter function to avoid excessive type instantiation depth
+// Simplified adapter function that avoids excessive type instantiation depth
 export const createTableAdapter = <T>(tableName: TableName) => {
   return {
-    select: () => {
-      return supabase.from(tableName).select() as unknown as Promise<{ data: T[] | null; error: any }>;
+    select: (): Promise<SupabaseResponse<T[]>> => {
+      return supabase.from(tableName).select() as unknown as Promise<SupabaseResponse<T[]>>;
     },
-    insert: (data: any) => {
-      return supabase.from(tableName).insert(data) as unknown as Promise<{ data: T[] | null; error: any }>;
+    insert: (data: any): Promise<SupabaseResponse<T[]>> => {
+      return supabase.from(tableName).insert(data) as unknown as Promise<SupabaseResponse<T[]>>;
     },
-    update: (data: any, match: Record<string, any>) => {
+    update: (data: any, match: Record<string, any>): Promise<SupabaseResponse<T[]>> => {
       const query = supabase.from(tableName).update(data);
       Object.entries(match).forEach(([key, value]) => {
         query.eq(key, value);
       });
-      return query as unknown as Promise<{ data: T[] | null; error: any }>;
+      return query as unknown as Promise<SupabaseResponse<T[]>>;
     },
-    delete: (match: Record<string, any>) => {
+    delete: (match: Record<string, any>): Promise<SupabaseResponse<T[]>> => {
       const query = supabase.from(tableName).delete();
       Object.entries(match).forEach(([key, value]) => {
         query.eq(key, value);
       });
-      return query as unknown as Promise<{ data: T[] | null; error: any }>;
+      return query as unknown as Promise<SupabaseResponse<T[]>>;
     },
     // Helper method to get a specific record
-    getOne: (match: Record<string, any>) => {
+    getOne: (match: Record<string, any>): Promise<SupabaseResponse<T>> => {
       const query = supabase.from(tableName).select();
       Object.entries(match).forEach(([key, value]) => {
         query.eq(key, value);
       });
-      return query.maybeSingle() as unknown as Promise<{ data: T | null; error: any }>;
+      return query.maybeSingle() as unknown as Promise<SupabaseResponse<T>>;
     }
   };
 };
