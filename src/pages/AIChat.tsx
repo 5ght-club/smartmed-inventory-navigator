@@ -191,7 +191,7 @@ const AIChat = () => {
         </CardHeader>
         <CardContent>
           {(!user || inventory.length === 0) && (
-            <Alert variant="warning" className="mb-4">
+            <Alert variant="default" className="mb-4 border-yellow-400 bg-yellow-50 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 dark:border-yellow-800">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {!user 
