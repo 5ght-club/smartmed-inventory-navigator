@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { HeartPulse } from "lucide-react";
-import { toast } from "sonner";
 
 const Auth = () => {
   const [isSignIn, setIsSignIn] = useState(true);
@@ -18,7 +17,7 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       if (isSignIn) {
         await signIn(email, password);
@@ -27,7 +26,8 @@ const Auth = () => {
         setIsSignIn(true);
       }
     } catch (error) {
-      console.error("Auth error:", error);
+      // Dummy error handling
+      alert("Dummy auth failed (should not happen in demo mode)");
     } finally {
       setIsLoading(false);
     }
@@ -53,8 +53,8 @@ const Auth = () => {
           </CardTitle>
           <CardDescription>
             {isSignIn
-              ? "Sign in to access your medical inventory dashboard"
-              : "Create an account to manage your medical inventory"}
+              ? "Sign in with any email and password to access the dashboard (demo mode)"
+              : "Create a demo account (any email and password allowed)"}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -79,7 +79,7 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={2}
               />
             </div>
           </CardContent>
